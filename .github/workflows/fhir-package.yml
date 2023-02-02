@@ -1,0 +1,78 @@
+name: FHIR Package
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - staging
+  pull_request:
+    branches:
+      - main
+      - master
+      - staging
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  build-profiles:
+    name: Build Profiles
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup NodeJS
+        uses: actions/setup-node@v2
+        with:
+          node-version: "12"
+      - name: Set up Ruby
+        uses: actions/setup-ruby@v1
+      - name: Setup Java JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Install fsh-sushi
+        run: npm install && npm install -g fsh-sushi@3.0.0-beta.1
+      - name: Install Jekyll
+        run: gem install jekyll
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Download IG Publisher
+        run: wget https://github.com/HL7/fhir-ig-publisher/releases/latest/download/publisher.jar
+      - name: Build profiles
+        run: java -jar publisher.jar -ig .
+      - name: Archive profile artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: package
+          path: |
+            output/package.tgz
+
+  validate:
+    name: Validate
+    needs: build-profiles
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Java JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Download FHIR Validator
+        run: wget https://github.com/hapifhir/org.hl7.fhir.core/releases/latest/download/validator_cli.jar
+      - name: Download profiles
+        uses: actions/download-artifact@v3
+        with:
+          name: package
+          path: profiles
+      - name: Extract package
+        working-directory: ./profiles
+        run: tar -zxf package.tgz
+      - name: Remove Non-Profile files
+        working-directory: ./profiles/package
+        run: rm .index.json && rm package.json
+      - name: Remove IG before validating
+        working-directory: ./profiles/package
+        run: rm ImplementationGuide-*
+      - name: Execute validator
+        run: java -jar validator_cli.jar profiles/package -version 4.0
