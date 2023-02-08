@@ -41,6 +41,7 @@ jobs:
   build-profiles:
     name: Build Profiles
     runs-on: ubuntu-latest
+    needs: fhir-packages
     steps:
       - name: Setup NodeJS
         uses: actions/setup-node@v2
@@ -61,6 +62,11 @@ jobs:
         uses: actions/checkout@v2
       - name: Download IG Publisher
         run: wget https://github.com/HL7/fhir-ig-publisher/releases/latest/download/publisher.jar
+      - name: Download profiles
+        uses: actions/download-artifact@v3
+        with:
+          name: packages
+          path: ~/.fhir/packages
       - name: Build profiles
         run: java -jar publisher.jar -ig .
       - name: Archive profile artifacts
