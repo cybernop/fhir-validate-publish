@@ -16,6 +16,28 @@ on:
   workflow_dispatch:
 
 jobs:
+  fhir-packages:
+    name: Get FHIR Packages
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Checkout packages repository
+        uses: actions/checkout@v2
+        with:
+          repository: cybernop/fhir-packages
+          lfs: true
+      - name: Create package directory
+        run: mkdir packages
+      - name: Extract packages
+        working-directory: ./packages
+        run: ../extract.sh
+      - name: Archive extracted packages
+        uses: actions/upload-artifact@v3
+        with:
+          name: packages
+          path: ./packages
+
   build-profiles:
     name: Build Profiles
     runs-on: ubuntu-latest
@@ -45,14 +67,12 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: package
-          path: |
-            output/package.tgz
+          path: output/package.tgz
       - name: Archive generated pages
         uses: actions/upload-artifact@v3
         with:
           name: pages
-          path: |
-            output
+          path: output
 
   validate:
     name: Validate
