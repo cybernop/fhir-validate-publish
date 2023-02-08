@@ -65,12 +65,9 @@ jobs:
           name: package
           path: output/package.tgz
       - name: Archive generated pages
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-pages-artifact@v1
         with:
-          name: pages
-          path: |
-            output
-            !output/package.*
+          path: output
 
   publish:
     name: Publish
@@ -84,13 +81,6 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Download pages
-        uses: actions/download-artifact@v3
-        with:
-          name: pages
-          path: public
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v1
-        with:
-          artifact_name: pages
