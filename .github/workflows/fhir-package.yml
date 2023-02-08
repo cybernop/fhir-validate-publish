@@ -97,6 +97,11 @@ jobs:
         with:
           name: package
           path: profiles
+      - name: Download profiles
+        uses: actions/download-artifact@v3
+        with:
+          name: packages
+          path: ~/.fhir/packages
       - name: Extract package
         working-directory: ./profiles
         run: tar -zxf package.tgz
