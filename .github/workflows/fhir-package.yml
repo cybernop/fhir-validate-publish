@@ -47,6 +47,12 @@ jobs:
           name: package
           path: |
             output/package.tgz
+      - name: Archive generated pages
+        uses: actions/upload-artifact@v3
+        with:
+          name: pages
+          path: |
+            output
 
   validate:
     name: Validate
